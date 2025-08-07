@@ -5,19 +5,28 @@ let capivaraX;
 let boias = [];
 let pedras = [];
 let fundo;
+let fundoCancun;
 let vidas = 3;
-let tempo = 30;
+let tempo = 50;
 let pontos = 0;
 let frameContador = 0;
 let pedraImg, boiaLaranja, boiaAzul;
 let gameOverImg, tryAgainIcon;
 let isMobile = false;
 let arrastando = false;
+let capivaraSurfista;
+let capivaraSurfistaPulando;
+let velocidadeBonus = 0;
+let modoAvancado = false;
+let marco150Ativado = false;
 
 function preload() {
   fundo = loadImage("assets/fundo.png");
+  fundoCancun = loadImage("assets/fundo-cancun.png");
   capivara = loadImage("assets/capivara.png");
   capivaraStanding = loadImage("assets/capivara-standing.png");
+  capivaraSurfista = loadImage("assets/capivara-surfista.svg");
+  capivaraSurfistaPulando = loadImage("assets/capivara-surfista-pulando.png");
   pedraImg = loadImage("assets/gelo.png");
   boiaLaranja = loadImage("assets/boia_laranja.png");
   boiaAzul = loadImage("assets/boia_azul.png");
@@ -64,13 +73,41 @@ function draw() {
     drawWidth = height * imgAspect;
     offsetX = (width - drawWidth) / 2;
   }
-  image(fundo, offsetX, offsetY, drawWidth, drawHeight);
+
+  let usarFundoCancun = pontos >= 150;
+  image(
+    usarFundoCancun ? fundoCancun : fundo,
+    offsetX,
+    offsetY,
+    drawWidth,
+    drawHeight
+  );
+
+  if (pontos >= 100 && velocidadeBonus < 1) velocidadeBonus = 1;
+  if (pontos >= 150 && velocidadeBonus < 2) velocidadeBonus = 2;
+  if (pontos >= 200 && velocidadeBonus < 3) velocidadeBonus = 3;
+  if (pontos >= 250 && velocidadeBonus < 4) velocidadeBonus = 4;
+  if (pontos >= 300 && velocidadeBonus < 5) velocidadeBonus = 5;
+
+  if (!marco150Ativado && pontos >= 150) {
+    tempo = 50;
+    vidas = 3;
+    marco150Ativado = true;
+    modoAvancado = true;
+  }
 
   let escalaCapivara = height * 0.16;
   let escalaItens = height * 0.12;
   let itemSize = escalaItens * 0.6;
+
+  let imagemCapivaraFinal = modoAvancado
+    ? arrastando
+      ? capivaraSurfistaPulando
+      : capivaraSurfista
+    : capivaraAtual;
+
   image(
-    capivaraAtual,
+    imagemCapivaraFinal,
     capivaraX - escalaCapivara / 2,
     height - escalaCapivara - 20,
     escalaCapivara,
@@ -89,7 +126,8 @@ function draw() {
     gerarItem();
   }
 
-  let velocidade = isMobile ? 12 : 6;
+  let baseVelocidade = isMobile ? 12 : 6;
+  let velocidade = baseVelocidade * (1 + 0.2 * velocidadeBonus);
 
   for (let i = pedras.length - 1; i >= 0; i--) {
     let p = pedras[i];
@@ -136,21 +174,16 @@ function draw() {
 
   if (vidas <= 0 || tempo <= 0) {
     noLoop();
-
     fill(0, 0, 0, 102);
     rect(0, 0, width, height);
-
     let centerX = width / 2;
     let centerY = height / 2;
-
     let imgW = isMobile ? width * 0.98 : width * 0.6;
     let imgH = imgW * (gameOverImg.height / gameOverImg.width);
-
     if (isMobile && imgH < height * 0.2) {
       imgH = height * 0.2;
       imgW = imgH * (gameOverImg.width / gameOverImg.height);
     }
-
     image(
       gameOverImg,
       centerX - imgW / 2,
@@ -158,7 +191,6 @@ function draw() {
       imgW,
       imgH
     );
-
     textAlign(CENTER, CENTER);
     textSize(isMobile ? height * 0.05 : height * 0.05);
     fill(255);
@@ -166,13 +198,10 @@ function draw() {
     strokeWeight(2);
     text(`⭐ Pontos: ${pontos}`, centerX, centerY);
     noStroke();
-
     let iconSize = isMobile ? height * 0.08 : height * 0.08;
     let iconX = centerX - iconSize / 2;
     let iconY = centerY + 70;
-
     image(tryAgainIcon, iconX, iconY, iconSize, iconSize);
-
     textSize(isMobile ? height * 0.035 : height * 0.03);
     fill(255);
     stroke(0);
@@ -180,7 +209,6 @@ function draw() {
     let textY = iconY + iconSize + 25;
     text("Tentar novamente", centerX, textY);
     noStroke();
-
     tryAgainArea = {
       x: iconX,
       y: iconY,
@@ -236,11 +264,14 @@ function mouseReleased() {
 
 function reiniciarJogo() {
   vidas = 3;
-  tempo = 30;
+  tempo = 50;
   pontos = 0;
   frameContador = 0;
   pedras = [];
   boias = [];
+  modoAvancado = false;
+  velocidadeBonus = 0;
+  marco150Ativado = false;
   loop();
 }
 
@@ -249,13 +280,11 @@ function mousePressed() {
     let mx = mouseX;
     let my = mouseY;
     let area = tryAgainArea;
-
     let iconHit =
       mx >= area.x &&
       mx <= area.x + area.w &&
       my >= area.y &&
       my <= area.y + area.w;
-
     textSize(area.textSize);
     let textWidthApprox = textWidth("Tentar novamente");
     let textHeightApprox = area.textSize;
@@ -264,7 +293,6 @@ function mousePressed() {
       mx <= area.centerX + textWidthApprox / 2 &&
       my >= area.textY - textHeightApprox / 2 &&
       my <= area.textY + textHeightApprox / 2;
-
     if (iconHit || textHit) {
       reiniciarJogo();
     }
