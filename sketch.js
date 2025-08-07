@@ -17,8 +17,13 @@ let arrastando = false;
 let capivaraSurfista;
 let capivaraSurfistaPulando;
 let velocidadeBonus = 0;
+let fundoBaleia, fundoMalibu;
+let capivaraPai, capivaraPaiPulando;
+let capivaraMae, capivaraMaePulando;
 let modoAvancado = false;
 let marco150Ativado = false;
+let marco250Ativado = false;
+let marco350Ativado = false;
 
 function preload() {
   fundo = loadImage("assets/fundo.png");
@@ -32,6 +37,12 @@ function preload() {
   boiaAzul = loadImage("assets/boia_azul.png");
   gameOverImg = loadImage("assets/game-over.png");
   tryAgainIcon = loadImage("assets/try-again.svg");
+  fundoBaleia = loadImage("assets/fundo-baleia.png");
+  fundoMalibu = loadImage("assets/fundo-malibu.png");
+  capivaraPai = loadImage("assets/capivara-pai.png");
+  capivaraPaiPulando = loadImage("assets/capivara-pai-pulando.png");
+  capivaraMae = loadImage("assets/capivara-mae.png");
+  capivaraMaePulando = loadImage("assets/capivara-mae-pulando.png");
 }
 
 function setup() {
@@ -74,14 +85,15 @@ function draw() {
     offsetX = (width - drawWidth) / 2;
   }
 
-  let usarFundoCancun = pontos >= 150;
-  image(
-    usarFundoCancun ? fundoCancun : fundo,
-    offsetX,
-    offsetY,
-    drawWidth,
-    drawHeight
-  );
+  let fundoAtual = fundo;
+  if (pontos >= 350) {
+    fundoAtual = fundoMalibu;
+  } else if (pontos >= 250) {
+    fundoAtual = fundoBaleia;
+  } else if (pontos >= 150) {
+    fundoAtual = fundoCancun;
+  }
+  image(fundoAtual, offsetX, offsetY, drawWidth, drawHeight);
 
   if (pontos >= 100 && velocidadeBonus < 1) velocidadeBonus = 1;
   if (pontos >= 150 && velocidadeBonus < 2) velocidadeBonus = 2;
@@ -90,21 +102,41 @@ function draw() {
   if (pontos >= 300 && velocidadeBonus < 5) velocidadeBonus = 5;
 
   if (!marco150Ativado && pontos >= 150) {
-    tempo = 50;
+    tempo = 40;
     vidas = 3;
     marco150Ativado = true;
     modoAvancado = true;
+  }
+
+  if (!marco250Ativado && pontos >= 250) {
+    tempo = 40;
+    vidas = 3;
+    marco250Ativado = true;
+  }
+
+  if (!marco350Ativado && pontos >= 350) {
+    tempo = 30;
+    vidas = 3;
+    marco350Ativado = true;
   }
 
   let escalaCapivara = height * 0.16;
   let escalaItens = height * 0.12;
   let itemSize = escalaItens * 0.6;
 
-  let imagemCapivaraFinal = modoAvancado
-    ? arrastando
+  let imagemCapivaraFinal;
+
+  if (pontos >= 350) {
+    imagemCapivaraFinal = arrastando ? capivaraMaePulando : capivaraMae;
+  } else if (pontos >= 250) {
+    imagemCapivaraFinal = arrastando ? capivaraPaiPulando : capivaraPai;
+  } else if (modoAvancado) {
+    imagemCapivaraFinal = arrastando
       ? capivaraSurfistaPulando
-      : capivaraSurfista
-    : capivaraAtual;
+      : capivaraSurfista;
+  } else {
+    imagemCapivaraFinal = capivaraAtual;
+  }
 
   image(
     imagemCapivaraFinal,
@@ -264,7 +296,7 @@ function mouseReleased() {
 
 function reiniciarJogo() {
   vidas = 3;
-  tempo = 50;
+  tempo = 40;
   pontos = 0;
   frameContador = 0;
   pedras = [];
@@ -272,6 +304,9 @@ function reiniciarJogo() {
   modoAvancado = false;
   velocidadeBonus = 0;
   marco150Ativado = false;
+  marco250Ativado = false;
+  marco350Ativado = false;
+
   loop();
 }
 
