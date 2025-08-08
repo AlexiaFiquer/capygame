@@ -26,23 +26,57 @@ let marco250Ativado = false;
 let marco350Ativado = false;
 
 function preload() {
-  fundo = loadImage("assets/fundo.png");
-  fundoCancun = loadImage("assets/fundo-cancun.png");
-  capivara = loadImage("assets/capivara.png");
-  capivaraStanding = loadImage("assets/capivara-standing.png");
-  capivaraSurfista = loadImage("assets/capivara-surfista.svg");
-  capivaraSurfistaPulando = loadImage("assets/capivara-surfista-pulando.png");
-  pedraImg = loadImage("assets/gelo.png");
-  boiaLaranja = loadImage("assets/boia_laranja.png");
-  boiaAzul = loadImage("assets/boia_azul.png");
-  gameOverImg = loadImage("assets/game-over.png");
-  tryAgainIcon = loadImage("assets/try-again.svg");
-  fundoBaleia = loadImage("assets/fundo-baleia.png");
-  fundoMalibu = loadImage("assets/fundo-malibu.png");
-  capivaraPai = loadImage("assets/capivara-pai.png");
-  capivaraPaiPulando = loadImage("assets/capivara-pai-pulando.png");
-  capivaraMae = loadImage("assets/capivara-mae.png");
-  capivaraMaePulando = loadImage("assets/capivara-mae-pulando.png");
+  fundo = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo.png"
+  );
+  fundoCancun = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-cancun.png"
+  );
+  capivara = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara.png"
+  );
+  capivaraStanding = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-standing.png"
+  );
+  capivaraSurfista = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista.svg"
+  );
+  capivaraSurfistaPulando = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista-pulando.png"
+  );
+  pedraImg = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/gelo.png"
+  );
+  boiaLaranja = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_laranja.png"
+  );
+  boiaAzul = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_azul.png"
+  );
+  gameOverImg = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/game-over.png"
+  );
+  tryAgainIcon = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/try-again.svg"
+  );
+  fundoBaleia = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-baleia.png"
+  );
+  fundoMalibu = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-malibu.png"
+  );
+  capivaraPai = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai.png"
+  );
+  capivaraPaiPulando = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai-pulando.png"
+  );
+  capivaraMae = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae.png"
+  );
+  capivaraMaePulando = loadImage(
+    "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae-pulando.png"
+  );
 }
 
 function setup() {
@@ -115,7 +149,7 @@ function draw() {
   }
 
   if (!marco350Ativado && pontos >= 350) {
-    tempo = 30;
+    tempo = 20;
     vidas = 3;
     marco350Ativado = true;
   }
@@ -254,7 +288,7 @@ function draw() {
 }
 
 function gerarItem() {
-  if (random() < 0.6) {
+  if (random() < 0.4) {
     pedras.push({ x: random(width), y: 0 });
   } else {
     const tipo = random([boiaLaranja, boiaAzul]);
@@ -296,7 +330,7 @@ function mouseReleased() {
 
 function reiniciarJogo() {
   vidas = 3;
-  tempo = 40;
+  tempo = 50;
   pontos = 0;
   frameContador = 0;
   pedras = [];
