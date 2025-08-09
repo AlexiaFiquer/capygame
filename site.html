@@ -76,62 +76,197 @@
       let musicaFundo;
       let lastBackPress = 0;
       let jogoAtivo = true;
+      let carregandoImgs = [];
+      let indiceImagemCarregando = 0;
+      let tempoTrocaImagem = 0;
+      let tempoFimCarregamento = 0;
+      const TEMPO_MINIMO_CARREGAMENTO = 4000;
+      let ultimoTempoAtualizado = 0;
+      let carregamentoCompleto = false;
+
+      let imagensParaCarregar = [
+        {
+          name: "fundo",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo.jpg",
+        },
+        {
+          name: "fundoCancun",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-cancun.jpg",
+        },
+        {
+          name: "capivara",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara.png",
+        },
+        {
+          name: "capivaraStanding",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-standing.png",
+        },
+        {
+          name: "capivaraSurfista",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista.png",
+        },
+        {
+          name: "capivaraSurfistaPulando",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista-pulando-1.png",
+        },
+        {
+          name: "pedraImg",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/gelo.png",
+        },
+        {
+          name: "boiaLaranja",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_laranja.png",
+        },
+        {
+          name: "boiaAzul",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_azul.png",
+        },
+        {
+          name: "gameOverImg",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/game-over.png",
+        },
+        {
+          name: "tryAgainIcon",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/try-again.svg",
+        },
+        {
+          name: "fundoBaleia",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-baleia.jpg",
+        },
+        {
+          name: "fundoMalibu",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-malibu.jpg",
+        },
+        {
+          name: "capivaraPai",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai.png",
+        },
+        {
+          name: "capivaraPaiPulando",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai-pulando.png",
+        },
+        {
+          name: "capivaraMae",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae.png",
+        },
+        {
+          name: "capivaraMaePulando",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae-pulando.png",
+        },
+        {
+          name: "carregando1",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/carregando-1.png",
+        },
+        {
+          name: "carregando2",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/carregando-2.png",
+        },
+      ];
+      let somParaCarregar = {
+        name: "musicaFundo",
+        url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/Musica-capivaras.mp3",
+      };
+
+      let imagensCarregadas = {};
+      let totalAssets = imagensParaCarregar.length + 1;
+      let assetsCarregados = 0;
+
+      let frases = [
+        "Chamando todas as capivaras...",
+        "Passando protetor solar...",
+        "Ligando as ondas...",
+        "Ativando o modo Aquática Turbo...",
+        "Prontos para a diversão...",
+      ];
+      let fraseAtual = 0;
+      let tempoFrase = 0;
+
+      function carregarAssets() {
+        imagensParaCarregar.forEach((asset) => {
+          loadImage(
+            asset.url,
+            (img) => {
+              imagensCarregadas[asset.name] = img;
+              if (
+                asset.name === "carregando1" ||
+                asset.name === "carregando2"
+              ) {
+                carregandoImgs.push(img);
+              }
+              assetsCarregados++;
+              checarFimCarregamento();
+            },
+            (err) => {
+              console.error(`Erro carregando imagem ${asset.name}`);
+              assetsCarregados++;
+              checarFimCarregamento();
+            }
+          );
+        });
+
+        loadSound(
+          somParaCarregar.url,
+          (snd) => {
+            musicaFundo = snd;
+            assetsCarregados++;
+            checarFimCarregamento();
+          },
+          (err) => {
+            console.error("Erro carregando música");
+            assetsCarregados++;
+            checarFimCarregamento();
+          }
+        );
+      }
+
+      function checarFimCarregamento() {
+        if (assetsCarregados >= totalAssets && tempoFimCarregamento === 0) {
+          tempoFimCarregamento = millis();
+        }
+      }
+
+      function iniciarJogo() {
+        fundo = imagensCarregadas.fundo;
+        fundoCancun = imagensCarregadas.fundoCancun;
+        capivara = imagensCarregadas.capivara;
+        capivaraStanding = imagensCarregadas.capivaraStanding;
+        capivaraSurfista = imagensCarregadas.capivaraSurfista;
+        capivaraSurfistaPulando = imagensCarregadas.capivaraSurfistaPulando;
+        pedraImg = imagensCarregadas.pedraImg;
+        boiaLaranja = imagensCarregadas.boiaLaranja;
+        boiaAzul = imagensCarregadas.boiaAzul;
+        gameOverImg = imagensCarregadas.gameOverImg;
+        tryAgainIcon = imagensCarregadas.tryAgainIcon;
+        fundoBaleia = imagensCarregadas.fundoBaleia;
+        fundoMalibu = imagensCarregadas.fundoMalibu;
+        capivaraPai = imagensCarregadas.capivaraPai;
+        capivaraPaiPulando = imagensCarregadas.capivaraPaiPulando;
+        capivaraMae = imagensCarregadas.capivaraMae;
+        capivaraMaePulando = imagensCarregadas.capivaraMaePulando;
+        capivaraAtual = capivara;
+        loop();
+        if (musicaFundo) {
+          musicaFundo.loop();
+        }
+      }
 
       function preload() {
-        fundo = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo.jpg"
-        );
-        fundoCancun = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-cancun.jpg"
-        );
-        capivara = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara.png"
-        );
-        capivaraStanding = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-standing.png"
-        );
-        capivaraSurfista = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista.png"
-        );
-        capivaraSurfistaPulando = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista-pulando-1.png"
-        );
-        pedraImg = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/gelo.png"
-        );
-        boiaLaranja = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_laranja.png"
-        );
-        boiaAzul = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_azul.png"
-        );
-        gameOverImg = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/game-over.png"
-        );
-        tryAgainIcon = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/try-again.svg"
-        );
-        fundoBaleia = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-baleia.jpg"
-        );
-        fundoMalibu = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-malibu.jpg"
-        );
-        capivaraPai = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai.png"
-        );
-        capivaraPaiPulando = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai-pulando.png"
-        );
-        capivaraMae = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae.png"
-        );
-        capivaraMaePulando = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae-pulando.png"
-        );
-        musicaFundo = loadSound(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/Musica-capivaras.mp3"
-        );
+        let imagensLoading = [
+          {
+            name: "carregando1",
+            url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/carregando-1.png",
+          },
+          {
+            name: "carregando2",
+            url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/carregando-2.png",
+          },
+        ];
+
+        imagensLoading.forEach((img) => {
+          loadImage(img.url, (loadedImg) => {
+            carregandoImgs.push(loadedImg);
+          });
+        });
       }
 
       function setup() {
@@ -140,25 +275,80 @@
         capivaraAtual = capivara;
         isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         isIphone = /iPhone|iPod/i.test(navigator.userAgent);
-        noLoop();
+
+        carregarAssets();
         startManualLoop();
 
-        setInterval(() => {
-          if (tempo > 0 && vidas > 0) tempo--;
-        }, 1000);
         document.addEventListener("touchmove", (e) => e.preventDefault(), {
           passive: false,
         });
-        musicaFundo.loop();
+
         document.addEventListener("visibilitychange", () => {
           if (document.hidden) {
-            musicaFundo.pause();
+            if (musicaFundo && musicaFundo.isPlaying()) musicaFundo.pause();
           } else {
-            if (!musicaFundo.isPlaying()) {
-              musicaFundo.loop();
-            }
+            if (musicaFundo && !musicaFundo.isPlaying()) musicaFundo.loop();
           }
         });
+
+        window.onpopstate = function () {
+          showToast("Pressione novamente para sair");
+          history.pushState(null, null, location.href);
+        };
+        history.pushState(null, null, location.href);
+
+        startManualLoop();
+      }
+
+      function desenharTelaLoading() {
+        background("#255370");
+        noStroke();
+
+        tempoTrocaImagem++;
+        if (tempoTrocaImagem > 60) {
+          indiceImagemCarregando =
+            (indiceImagemCarregando + 1) % carregandoImgs.length;
+          tempoTrocaImagem = 0;
+        }
+
+        if (
+          carregandoImgs.length > 0 &&
+          carregandoImgs[indiceImagemCarregando]
+        ) {
+          let img = carregandoImgs[indiceImagemCarregando];
+          let imgW;
+          if (isMobile) {
+            imgW = width * 0.6;
+          } else {
+            imgW = width * 0.3;
+          }
+          let imgH = imgW * (img.height / img.width);
+          image(img, width / 2 - imgW / 2, height / 2 - imgH - 40, imgW, imgH);
+        }
+        let barraWidth = width * 0.6;
+        let barraHeight = 20;
+        let xBar = (width - barraWidth) / 2;
+        let yBar = height / 2;
+
+        fill("#fff");
+        rect(xBar, yBar, barraWidth, barraHeight, 10);
+
+        fill("#e79f3e");
+        let progresso = assetsCarregados / totalAssets;
+        rect(xBar, yBar, barraWidth * progresso, barraHeight, 10);
+
+        tempoFrase++;
+        if (tempoFrase > 120) {
+          fraseAtual = (fraseAtual + 1) % frases.length;
+          tempoFrase = 0;
+        }
+
+        let alpha = map(tempoFrase, 0, 120, 0, 255);
+        if (tempoFrase > 60) alpha = map(tempoFrase, 60, 120, 255, 0);
+        fill(255, alpha);
+        textAlign(CENTER, CENTER);
+        textSize(20);
+        text(frases[fraseAtual], width / 2, yBar + barraHeight + 30);
       }
 
       function showToast(message, duration = 3000) {
@@ -192,6 +382,23 @@
       }
 
       function draw() {
+        if (assetsCarregados < totalAssets) {
+          desenharTelaLoading();
+          return;
+        }
+
+        if (!carregamentoCompleto) {
+          if (millis() - tempoFimCarregamento >= TEMPO_MINIMO_CARREGAMENTO) {
+            console.log("Iniciando jogo...");
+            carregamentoCompleto = true;
+            iniciarJogo();
+            loop();
+          } else {
+            desenharTelaLoading();
+            return;
+          }
+        }
+
         background(255);
         let imgAspect = fundo.width / fundo.height;
         let canvasAspect = width / height;
@@ -233,6 +440,12 @@
           vidas = 3;
           marco350Ativado = true;
         }
+        if (jogoAtivo && millis() - ultimoTempoAtualizado >= 1000) {
+          if (tempo > 0 && vidas > 0) {
+            tempo--;
+            ultimoTempoAtualizado = millis();
+          }
+        }
 
         let escalaCapivara = height * 0.16;
         let escalaItens = height * 0.12;
@@ -265,11 +478,11 @@
 
         frameContador++;
         let aumentoFrequencia = 1 + Math.floor(pontos / 50) * 0.2;
-        let intervalo = Math.floor((isMobile ? 75 : 60) / aumentoFrequencia);
+        let intervalo = Math.floor((isMobile ? 180 : 140) / aumentoFrequencia);
 
         if (jogoAtivo && frameContador % intervalo === 0) gerarItem();
 
-        let baseVelocidade = isMobile ? 8 : 12;
+        let baseVelocidade = isMobile ? 2 : 3;
         if (isIphone) baseVelocidade *= 1.4;
         let velocidade = baseVelocidade * (1 + 0.1 * velocidadeBonus);
 
@@ -278,16 +491,20 @@
           image(pedraImg, p.x, p.y, itemSize, itemSize);
           if (jogoAtivo) p.y += velocidade;
 
-          if (
-            dist(p.x, p.y, capivaraX, height - itemSize / 2 - 20) < itemSize
-          ) {
-            if (jogoAtivo) vidas--;
+          let distancia = dist(
+            p.x + itemSize / 2,
+            p.y + itemSize / 2,
+            capivaraX,
+            height - itemSize / 2 - 20
+          );
+
+          if (jogoAtivo && distancia < itemSize) {
+            vidas--;
             pedras.splice(i, 1);
           } else if (p.y > height) {
             pedras.splice(i, 1);
           }
         }
-
         for (let i = boias.length - 1; i >= 0; i--) {
           let b = boias[i];
           image(b.tipo, b.x, b.y, itemSize, itemSize);
