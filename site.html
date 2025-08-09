@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <title>Capivara no Aquático</title>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+
     <style>
       html,
       body {
@@ -16,9 +19,33 @@
       canvas {
         display: block;
       }
+      .toast {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 12px 20px;
+        position: fixed;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        font-size: 14px;
+        z-index: 9999;
+        transition: visibility 0s, opacity 0.5s ease;
+        opacity: 0;
+      }
+
+      .toast.show {
+        visibility: visible;
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
+    <div id="toast" class="toast"></div>
+
     <script>
       let capivara;
       let capivaraStanding;
@@ -46,13 +73,16 @@
       let marco150Ativado = false;
       let marco250Ativado = false;
       let marco350Ativado = false;
+      let musicaFundo;
+      let lastBackPress = 0;
+      let jogoAtivo = true;
 
       function preload() {
         fundo = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo.png"
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo.jpg"
         );
         fundoCancun = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-cancun.png"
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-cancun.jpg"
         );
         capivara = loadImage(
           "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara.png"
@@ -61,10 +91,10 @@
           "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-standing.png"
         );
         capivaraSurfista = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista.svg"
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista.png"
         );
         capivaraSurfistaPulando = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista-pulando.png"
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-surfista-pulando-1.png"
         );
         pedraImg = loadImage(
           "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/gelo.png"
@@ -82,10 +112,10 @@
           "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/try-again.svg"
         );
         fundoBaleia = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-baleia.png"
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-baleia.jpg"
         );
         fundoMalibu = loadImage(
-          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-malibu.png"
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/fundo-malibu.jpg"
         );
         capivaraPai = loadImage(
           "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-pai.png"
@@ -99,6 +129,9 @@
         capivaraMaePulando = loadImage(
           "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/capivara-mae-pulando.png"
         );
+        musicaFundo = loadSound(
+          "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/Musica-capivaras.mp3"
+        );
       }
 
       function setup() {
@@ -106,17 +139,56 @@
         capivaraX = width / 2;
         capivaraAtual = capivara;
         isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        isIphone = /iPhone|iPod/i.test(navigator.userAgent);
+        noLoop();
+        startManualLoop();
+
         setInterval(() => {
           if (tempo > 0 && vidas > 0) tempo--;
         }, 1000);
         document.addEventListener("touchmove", (e) => e.preventDefault(), {
           passive: false,
         });
+        musicaFundo.loop();
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            musicaFundo.pause();
+          } else {
+            if (!musicaFundo.isPlaying()) {
+              musicaFundo.loop();
+            }
+          }
+        });
       }
+
+      function showToast(message, duration = 3000) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, duration);
+      }
+
+      window.onpopstate = function (event) {
+        showToast("Pressione novamente para sair");
+        history.pushState(null, null, location.href);
+      };
+
+      history.pushState(null, null, location.href);
 
       function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         capivaraX = constrain(capivaraX, 0, width);
+      }
+
+      function startManualLoop() {
+        function frame() {
+          draw();
+          window.requestAnimationFrame(frame);
+        }
+        window.requestAnimationFrame(frame);
       }
 
       function draw() {
@@ -137,44 +209,46 @@
           offsetX = (width - drawWidth) / 2;
         }
         let fundoAtual = fundo;
-        if (pontos >= 350) fundoAtual = fundoMalibu;
-        else if (pontos >= 250) fundoAtual = fundoBaleia;
-        else if (pontos >= 150) fundoAtual = fundoCancun;
+        if (pontos >= 300) fundoAtual = fundoMalibu;
+        else if (pontos >= 200) fundoAtual = fundoBaleia;
+        else if (pontos >= 100) fundoAtual = fundoCancun;
+
         image(fundoAtual, offsetX, offsetY, drawWidth, drawHeight);
-        if (pontos >= 100 && velocidadeBonus < 1) velocidadeBonus = 1;
-        if (pontos >= 150 && velocidadeBonus < 2) velocidadeBonus = 2;
-        if (pontos >= 200 && velocidadeBonus < 3) velocidadeBonus = 3;
-        if (pontos >= 250 && velocidadeBonus < 4) velocidadeBonus = 4;
-        if (pontos >= 300 && velocidadeBonus < 5) velocidadeBonus = 5;
-        if (!marco150Ativado && pontos >= 150) {
+
+        velocidadeBonus = jogoAtivo ? Math.floor(pontos / 80) : 0;
+
+        if (!marco150Ativado && pontos >= 100) {
           tempo = 30;
           vidas = 3;
           marco150Ativado = true;
           modoAvancado = true;
         }
-        if (!marco250Ativado && pontos >= 250) {
+        if (!marco250Ativado && pontos >= 200) {
           tempo = 30;
           vidas = 3;
           marco250Ativado = true;
         }
-        if (!marco350Ativado && pontos >= 350) {
+        if (!marco350Ativado && pontos >= 300) {
           tempo = 20;
           vidas = 3;
           marco350Ativado = true;
         }
+
         let escalaCapivara = height * 0.16;
         let escalaItens = height * 0.12;
         let itemSize = escalaItens * 0.6;
+
         let imagemCapivaraFinal;
-        if (pontos >= 350)
+        if (pontos >= 300)
           imagemCapivaraFinal = arrastando ? capivaraMaePulando : capivaraMae;
-        else if (pontos >= 250)
+        else if (pontos >= 200)
           imagemCapivaraFinal = arrastando ? capivaraPaiPulando : capivaraPai;
         else if (modoAvancado)
           imagemCapivaraFinal = arrastando
             ? capivaraSurfistaPulando
             : capivaraSurfista;
         else imagemCapivaraFinal = capivaraAtual;
+
         image(
           imagemCapivaraFinal,
           capivaraX - escalaCapivara / 2,
@@ -182,39 +256,56 @@
           escalaCapivara,
           escalaCapivara
         );
+
         if (!isMobile) {
           if (keyIsDown(LEFT_ARROW)) capivaraX -= 5;
           if (keyIsDown(RIGHT_ARROW)) capivaraX += 5;
         }
         capivaraX = constrain(capivaraX, 0, width);
+
         frameContador++;
-        let intervalo = isMobile ? 75 : 60;
-        if (frameContador % intervalo === 0) gerarItem();
-        let baseVelocidade = isMobile ? 8 : 8;
-        let velocidade = baseVelocidade * (1 + 0.3 * velocidadeBonus);
+        let aumentoFrequencia = 1 + Math.floor(pontos / 50) * 0.2;
+        let intervalo = Math.floor((isMobile ? 75 : 60) / aumentoFrequencia);
+
+        if (jogoAtivo && frameContador % intervalo === 0) gerarItem();
+
+        let baseVelocidade = isMobile ? 8 : 12;
+        if (isIphone) baseVelocidade *= 1.4;
+        let velocidade = baseVelocidade * (1 + 0.1 * velocidadeBonus);
+
         for (let i = pedras.length - 1; i >= 0; i--) {
           let p = pedras[i];
           image(pedraImg, p.x, p.y, itemSize, itemSize);
-          p.y += velocidade;
+          if (jogoAtivo) p.y += velocidade;
+
           if (
             dist(p.x, p.y, capivaraX, height - itemSize / 2 - 20) < itemSize
           ) {
-            vidas--;
+            if (jogoAtivo) vidas--;
             pedras.splice(i, 1);
-          } else if (p.y > height) pedras.splice(i, 1);
+          } else if (p.y > height) {
+            pedras.splice(i, 1);
+          }
         }
+
         for (let i = boias.length - 1; i >= 0; i--) {
           let b = boias[i];
           image(b.tipo, b.x, b.y, itemSize, itemSize);
-          b.y += velocidade;
+          if (jogoAtivo) b.y += velocidade;
+
           if (
             dist(b.x, b.y, capivaraX, height - itemSize / 2 - 20) < itemSize
           ) {
+            if (!jogoAtivo) continue;
+
             if (b.tipo === boiaLaranja || b.tipo === boiaAzul) tempo += 2;
             pontos += 5;
             boias.splice(i, 1);
-          } else if (b.y > height) boias.splice(i, 1);
+          } else if (b.y > height) {
+            boias.splice(i, 1);
+          }
         }
+
         if (vidas > 0 && tempo > 0) {
           let textSizeVal = height * 0.03;
           let lineHeight = textSizeVal * 1.2;
@@ -229,8 +320,9 @@
           text(`⭐ Pontos: ${pontos}`, 20, 20 + lineHeight * 2);
           noStroke();
         }
+
         if (vidas <= 0 || tempo <= 0) {
-          noLoop();
+          jogoAtivo = false;
           fill(0, 0, 0, 102);
           rect(0, 0, width, height);
           let centerX = width / 2;
@@ -268,6 +360,7 @@
           let textY = iconY + iconSize + 25;
           text("Tentar novamente", centerX, textY);
           noStroke();
+
           tryAgainArea = {
             x: iconX,
             y: iconY,
@@ -291,15 +384,19 @@
       }
 
       function touchMoved() {
-        if (touches.length > 0 && isMobile) {
+        if (!jogoAtivo) return false;
+        if (isMobile) {
           capivaraX = constrain(touches[0].x, 0, width);
-          capivaraAtual = capivaraStanding;
-          arrastando = true;
+          if (!arrastando) {
+            capivaraAtual = capivaraStanding;
+            arrastando = true;
+          }
         }
         return false;
       }
 
       function mouseDragged() {
+        if (!jogoAtivo) return false;
         if (!isMobile) {
           capivaraX = constrain(mouseX, 0, width);
           capivaraAtual = capivaraStanding;
@@ -323,6 +420,7 @@
       }
 
       function reiniciarJogo() {
+        velocidadeBonus = 0;
         vidas = 3;
         tempo = 40;
         pontos = 0;
@@ -330,14 +428,29 @@
         pedras = [];
         boias = [];
         modoAvancado = false;
-        velocidadeBonus = 0;
         marco150Ativado = false;
         marco250Ativado = false;
         marco350Ativado = false;
-        loop();
+        jogoAtivo = true;
       }
-
+      function touchStarted() {
+        userStartAudio();
+        if (!musicaFundo.isPlaying()) {
+          musicaFundo.loop();
+        }
+        if (navigator.vibrate) {
+          navigator.vibrate(100);
+        }
+        if (isMobile) {
+          capivaraAtual = capivaraStanding;
+          arrastando = true;
+        }
+      }
       function mousePressed() {
+        userStartAudio();
+        if (!musicaFundo.isPlaying()) {
+          musicaFundo.loop();
+        }
         if ((vidas <= 0 || tempo <= 0) && tryAgainArea) {
           let mx = mouseX;
           let my = mouseY;
