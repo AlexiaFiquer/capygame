@@ -59,7 +59,7 @@
       let tempo = 40;
       let pontos = 0;
       let frameContador = 0;
-      let pedraImg, boiaLaranja, boiaAzul;
+      let pedraImg, boiaAzul, boiaConfete;
       let gameOverImg, tryAgainIcon;
       let isMobile = false;
       let arrastando = false;
@@ -114,12 +114,12 @@
           url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/gelo.png",
         },
         {
-          name: "boiaLaranja",
-          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_laranja.png",
-        },
-        {
           name: "boiaAzul",
           url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/boia_azul.png",
+        },
+        {
+          name: "boiaConfete",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/confete.png",
         },
         {
           name: "gameOverImg",
@@ -161,7 +161,41 @@
           name: "carregando2",
           url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/carregando-2.png",
         },
+
+        {
+          name: "microfone",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/microfone-1.png",
+        },
+        {
+          name: "coco",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/coco.png",
+        },
+        {
+          name: "parasol",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/parasol.png",
+        },
+        {
+          name: "frio",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/frio.png",
+        },
+        {
+          name: "sorvete",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/sorvete.png",
+        },
+        {
+          name: "donuts",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/donuts.png",
+        },
+        {
+          name: "chuva",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/chuva.png",
+        },
+        {
+          name: "flor",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/flor.png",
+        },
       ];
+
       let somParaCarregar = {
         name: "musicaFundo",
         url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/Musica-capivaras.mp3",
@@ -233,8 +267,19 @@
         capivaraSurfista = imagensCarregadas.capivaraSurfista;
         capivaraSurfistaPulando = imagensCarregadas.capivaraSurfistaPulando;
         pedraImg = imagensCarregadas.pedraImg;
-        boiaLaranja = imagensCarregadas.boiaLaranja;
         boiaAzul = imagensCarregadas.boiaAzul;
+        boiaConfete = imagensCarregadas.boiaConfete;
+        pedraChuva = imagensCarregadas.chuva;
+        pedraFrio = imagensCarregadas.frio;
+
+        boiaMicrofone = imagensCarregadas.microfone;
+        boiaCoco = imagensCarregadas.coco;
+        boiaParasol = imagensCarregadas.parasol;
+        boiaFrio = imagensCarregadas.frio;
+        boiaSorvete = imagensCarregadas.sorvete;
+        boiaDonuts = imagensCarregadas.donuts;
+        boiaFlor = imagensCarregadas.flor;
+
         gameOverImg = imagensCarregadas.gameOverImg;
         tryAgainIcon = imagensCarregadas.tryAgainIcon;
         fundoBaleia = imagensCarregadas.fundoBaleia;
@@ -431,12 +476,12 @@
           modoAvancado = true;
         }
         if (!marco250Ativado && pontos >= 200) {
-          tempo = 30;
+          tempo = 20;
           vidas = 3;
           marco250Ativado = true;
         }
         if (!marco350Ativado && pontos >= 300) {
-          tempo = 20;
+          tempo = 10;
           vidas = 3;
           marco350Ativado = true;
         }
@@ -477,10 +522,15 @@
         capivaraX = constrain(capivaraX, 0, width);
 
         frameContador++;
-        let aumentoFrequencia = 1 + Math.floor(pontos / 50) * 0.2;
-        let intervalo = Math.floor((isMobile ? 180 : 140) / aumentoFrequencia);
 
-        if (jogoAtivo && frameContador % intervalo === 0) gerarItem();
+        let intervaloBase = isMobile ? 180 : 140;
+        let aumentoFrequencia = 1 + Math.floor(pontos / 50) * 0.2;
+        let intervalo = Math.floor(intervaloBase / aumentoFrequencia);
+        intervalo = max(intervalo, 40);
+
+        if (jogoAtivo && frameContador % intervalo === 0) {
+          gerarItem();
+        }
 
         let baseVelocidade = isMobile ? 2 : 3;
         if (isIphone) baseVelocidade *= 1.4;
@@ -488,7 +538,8 @@
 
         for (let i = pedras.length - 1; i >= 0; i--) {
           let p = pedras[i];
-          image(pedraImg, p.x, p.y, itemSize, itemSize);
+          image(p.tipo, p.x, p.y, itemSize, itemSize);
+
           if (jogoAtivo) p.y += velocidade;
 
           let distancia = dist(
@@ -505,9 +556,11 @@
             pedras.splice(i, 1);
           }
         }
+
         for (let i = boias.length - 1; i >= 0; i--) {
           let b = boias[i];
           image(b.tipo, b.x, b.y, itemSize, itemSize);
+
           if (jogoAtivo) b.y += velocidade;
 
           if (
@@ -515,7 +568,7 @@
           ) {
             if (!jogoAtivo) continue;
 
-            if (b.tipo === boiaLaranja || b.tipo === boiaAzul) tempo += 2;
+            tempo += 2;
             pontos += 5;
             boias.splice(i, 1);
           } else if (b.y > height) {
@@ -591,13 +644,36 @@
       }
 
       function gerarItem() {
-        if (random() < 0.45) pedras.push({ x: random(width), y: 0 });
-        else
+        let pedraAtual;
+        let boiasAtuais = [];
+
+        if (pontos >= 300) {
+          pedraAtual = pedraChuva;
+          boiasAtuais = [boiaMicrofone, boiaConfete];
+        } else if (pontos >= 200) {
+          pedraAtual = pedraFrio;
+          boiasAtuais = [boiaDonuts, boiaAzul];
+        } else if (pontos >= 100) {
+          pedraAtual = pedraChuva;
+          boiasAtuais = [boiaParasol, boiaCoco];
+        } else {
+          pedraAtual = pedraFrio;
+          boiasAtuais = [boiaFlor, boiaSorvete];
+        }
+
+        if (random() < 0.45) {
+          pedras.push({
+            x: random(width),
+            y: 0,
+            tipo: pedraAtual,
+          });
+        } else {
           boias.push({
             x: random(width),
             y: 0,
-            tipo: random([boiaLaranja, boiaAzul]),
+            tipo: random(boiasAtuais),
           });
+        }
       }
 
       function touchMoved() {
