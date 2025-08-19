@@ -83,6 +83,9 @@
       const TEMPO_MINIMO_CARREGAMENTO = 4000;
       let ultimoTempoAtualizado = 0;
       let carregamentoCompleto = false;
+      let premio = null;
+      let cupomImgs = {};
+      let margemTela = 40;
 
       let imagensParaCarregar = [
         {
@@ -194,6 +197,22 @@
           name: "flor",
           url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/flor.png",
         },
+        {
+          name: "cupom10",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/cupom10.png",
+        },
+        {
+          name: "cupom15",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/cupom15.png",
+        },
+        {
+          name: "cupom20",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/cupom20.png",
+        },
+        {
+          name: "cupomFree",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/cupomfree.png",
+        },
       ];
 
       let somParaCarregar = {
@@ -263,6 +282,12 @@
         fundo = imagensCarregadas.fundo;
         fundoCancun = imagensCarregadas.fundoCancun;
         capivara = imagensCarregadas.capivara;
+        cupomImgs = {
+          10: imagensCarregadas.cupom10,
+          15: imagensCarregadas.cupom15,
+          20: imagensCarregadas.cupom20,
+          free: imagensCarregadas.cupomFree,
+        };
         capivaraStanding = imagensCarregadas.capivaraStanding;
         capivaraSurfista = imagensCarregadas.capivaraSurfista;
         capivaraSurfistaPulando = imagensCarregadas.capivaraSurfistaPulando;
@@ -587,7 +612,7 @@
           textStyle(BOLD);
           text(`⏱️ Tempo: ${tempo}`, 20, 20);
           text(`❤️ Vidas: ${vidas}`, 20, 20 + lineHeight);
-          text(`⭐ Pontos: ${pontos}`, 20, 20 + lineHeight * 2);
+          text(`⭐ Pontuação: ${pontos}`, 20, 20 + lineHeight * 2);
           noStroke();
         }
 
@@ -597,49 +622,133 @@
           rect(0, 0, width, height);
           let centerX = width / 2;
           let centerY = height / 2;
-          let imgW = isMobile ? width * 0.98 : width * 0.6;
-          let imgH = imgW * (gameOverImg.height / gameOverImg.width);
-          if (isMobile && imgH < height * 0.2) {
-            imgH = height * 0.2;
-            imgW = imgH * (gameOverImg.width / gameOverImg.height);
+          if (typeof premio === "undefined") premio = null;
+          if (premio === null) {
+            premio = sortearPremio(pontos);
           }
-          image(
-            gameOverImg,
-            centerX - imgW / 2,
-            centerY - imgH / 2 - 120,
-            imgW,
-            imgH
-          );
-          textAlign(CENTER, CENTER);
-          textSize(height * 0.05);
-          fill(255);
-          stroke(0);
-          strokeWeight(1.4);
-          textStyle(BOLD);
-          text(`⭐ Pontos: ${pontos}`, centerX, centerY);
-          noStroke();
+          const temPremio = premio !== null && cupomImgs[premio];
+          if (temPremio) {
+            fill(255);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            textStyle(BOLD);
+            textSize(min(height * 0.05, 42));
 
-          let iconSize = height * 0.08;
-          let iconX = centerX - iconSize / 2;
-          let iconY = centerY + 70;
-          image(tryAgainIcon, iconX, iconY, iconSize, iconSize);
-          textSize(height * 0.035);
-          fill(255);
-          stroke(0);
-          strokeWeight(1);
-          let textY = iconY + iconSize + 25;
-          text("Tentar novamente", centerX, textY);
-          noStroke();
+            let cupomW, cupomH, cupomY, pontosY, baseY;
 
-          tryAgainArea = {
-            x: iconX,
-            y: iconY,
-            w: iconSize,
-            h: iconSize + 30,
-            centerX: centerX,
-            textY: textY,
-            textSize: height * 0.035,
-          };
+            if (isMobile) {
+              cupomW = width * 0.9;
+              const aspect = cupomImgs[premio].height / cupomImgs[premio].width;
+              cupomH = cupomW * aspect;
+              cupomY = height / 2 - cupomH / 2 - 120;
+              image(
+                cupomImgs[premio],
+                width / 2 - cupomW / 2,
+                cupomY,
+                cupomW,
+                cupomH
+              );
+              pontosY = height / 2 + 30;
+              baseY = height / 2 + 120;
+            } else {
+              const cupomAspect =
+                cupomImgs[premio].height / cupomImgs[premio].width;
+              const maxW = width * 0.55;
+              const maxH = height * 0.45;
+              const wByH = maxH / cupomAspect;
+              cupomW = Math.min(maxW, wByH);
+              cupomH = cupomW * cupomAspect;
+              cupomY = centerY - cupomH / 2 - 80;
+              image(
+                cupomImgs[premio],
+                centerX - cupomW / 2,
+                cupomY,
+                cupomW,
+                cupomH
+              );
+              pontosY = cupomY + cupomH + 40;
+              baseY = pontosY + 60;
+            }
+
+            text("VOCÊ GANHOU!", width / 2, cupomY - 30);
+
+            fill(255);
+            stroke(0);
+            strokeWeight(1.4);
+            textStyle(BOLD);
+            textSize(height * 0.045);
+            text(`⭐ Pontos: ${pontos}`, width / 2, pontosY);
+            noStroke();
+
+            let iconSize = height * 0.08;
+            let iconX = width / 2 - iconSize / 2;
+            let iconY = baseY;
+            image(tryAgainIcon, iconX, iconY, iconSize, iconSize);
+
+            textSize(height * 0.035);
+            fill(255);
+            stroke(0);
+            strokeWeight(1);
+            let textY = iconY + iconSize + 25;
+            text("Tentar novamente", width / 2, textY);
+            noStroke();
+
+            tryAgainArea = {
+              x: iconX,
+              y: iconY,
+              w: iconSize,
+              h: iconSize + 30,
+              centerX: width / 2,
+              textY: textY,
+              textSize: height * 0.035,
+            };
+          } else {
+            let imgW = isMobile ? width * 0.98 : width * 0.6;
+            let imgH = imgW * (gameOverImg.height / gameOverImg.width);
+            if (isMobile && imgH < height * 0.2) {
+              imgH = height * 0.2;
+              imgW = imgH * (gameOverImg.width / gameOverImg.height);
+            }
+            image(
+              gameOverImg,
+              centerX - imgW / 2,
+              centerY - imgH / 2 - 120,
+              imgW,
+              imgH
+            );
+            textAlign(CENTER, CENTER);
+            textSize(height * 0.035);
+            fill(255);
+            stroke(0);
+            strokeWeight(1);
+            text(
+              "Tente novamente para conseguir um prêmio",
+              centerX,
+              centerY + 20
+            );
+            noStroke();
+            let baseY = isMobile ? centerY + 120 : centerY + 150;
+            let iconSize = height * 0.08;
+            let iconX = centerX - iconSize / 2;
+            let iconY = baseY;
+            image(tryAgainIcon, iconX, iconY, iconSize, iconSize);
+            textSize(height * 0.035);
+            fill(255);
+            stroke(0);
+            strokeWeight(1);
+            let textY = iconY + iconSize + 25;
+            text("Tentar novamente", centerX, textY);
+            noStroke();
+            tryAgainArea = {
+              x: iconX,
+              y: iconY,
+              w: iconSize,
+              h: iconSize + 30,
+              centerX: centerX,
+              textY: textY,
+              textSize: height * 0.035,
+            };
+          }
         }
       }
 
@@ -674,6 +783,23 @@
             tipo: random(boiasAtuais),
           });
         }
+      }
+
+      function sortearPremio(pontos) {
+        let chance = random(100);
+
+        if (pontos >= 300) {
+          if (chance < 50) return "20";
+          if (chance < 80) return "15";
+          return "free";
+        } else if (pontos >= 200) {
+          if (chance < 70) return "15";
+          return "20";
+        } else if (pontos >= 50) {
+          if (chance < 70) return "10";
+          return "15";
+        }
+        return null;
       }
 
       function touchMoved() {
@@ -725,6 +851,7 @@
         marco250Ativado = false;
         marco350Ativado = false;
         jogoAtivo = true;
+        premio = null;
       }
       function touchStarted() {
         userStartAudio();
