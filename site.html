@@ -211,7 +211,7 @@
         },
         {
           name: "cupomFree",
-          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/cupomfree.png",
+          url: "https://aquaticaamericanpark.com.br/wp-content/uploads/2025/08/cupomgratis.png",
         },
       ];
 
@@ -789,16 +789,16 @@
         let chance = random(100);
 
         if (pontos >= 300) {
-          if (chance < 50) return "20";
-          if (chance < 80) return "15";
+          if (chance < 70) return "20";
           return "free";
-        } else if (pontos >= 200) {
-          if (chance < 70) return "15";
-          return "20";
-        } else if (pontos >= 50) {
+        } else if (pontos >= 200 && pontos < 300) {
+          if (chance < 50) return "20";
+          return "15";
+        } else if (pontos >= 50 && pontos < 200) {
           if (chance < 70) return "10";
           return "15";
         }
+
         return null;
       }
 
